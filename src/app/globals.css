@@ -1,26 +1,43 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* 1. Theme Variables (OKLCH colors for better vibrancy) */
+@theme {
+  --color-electric: oklch(70% 0.28 145);  /* Electric cyan */
+  --color-neon: oklch(65% 0.25 30);       /* Hot pink */
+  --color-lava: oklch(65% 0.2 50);        /* Burnt orange */
+  --color-dark: oklch(15% 0.03 260);      /* Deep navy */
+  --color-light: oklch(98% 0.01 260);     /* Pure white */
+
+  --spacing-cell: min(16vw, 80px);        /* Responsive cell size */
+  --duration-shift: 300ms;                /* Animation speed */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* 2. Layer Custom Utilities */
+@layer utilities {
+  .btn-primary {
+    background: oklch(var(--color-electric));
+    color: var(--color-dark);
+  }
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* 3. Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
+
+/* 4. Base Styles */
+@layer base {
+  body {
+    background: var(--color-dark);
+    color: var(--color-light);
+    font-family: "Inter", sans-serif;
+  }
+}
+
+
+
+

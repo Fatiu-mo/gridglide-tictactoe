@@ -1,103 +1,135 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import { Link } from "lucide-react";
+import { useState } from "react";
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+
+
+// const initialBoard = Array(5).fill(null).map(() => Array(5).fill(null));
+// console.log(initialBoard);
+
+
+export default function Gameboard() {
+  const [playableGridPosition, setPlayableGridPosition] = useState({ row: 0, col: 0 });
+  const [board, setBoard] = useState(() =>
+    Array(5).fill(null).map(() => Array(5).fill(null))
   );
+  const [currentPlayer, setCurrentPlayer] = useState("X"); 
+  const [selectedPiece, setSelectedPiece] = useState(null); // Will store { row, col }
+ 
+
+  function moveGrid(direction) {
+    const { row, col } = playableGridPosition;
+    let newRow = row;
+    let newCol = col;
+  
+    if (direction === "UP" && row > 0) newRow--;
+    else if (direction === "DOWN" && row < 2) newRow++;
+    else if (direction === "LEFT" && col > 0) newCol--;
+    else if (direction === "RIGHT" && col < 2) newCol++;
+  
+    // Only update if something changed
+    if (newRow !== row || newCol !== col) {
+      setPlayableGridPosition({ row: newRow, col: newCol });
+      setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
+      setSelectedPiece(null); // clear any selected piece
+    }
+  }
+  // Example usage
+  //  moveGrid("DOWN");
+
+  function countPlayerPieces(board, player) {
+    return board.flat().filter(cell => cell === player).length;
+  }
+  
+
+  function handleCellClick(rowIndex, colIndex) {
+    const { row, col } = playableGridPosition;
+    const inActiveGrid =
+      rowIndex >= row && rowIndex < row + 3 &&
+      colIndex >= col && colIndex < col + 3;
+  
+    const newBoard = board.map(row => [...row]);
+  
+    const currentPieceCount = countPlayerPieces(board, currentPlayer);
+  
+    const cellValue = board[rowIndex][colIndex];
+  
+    // 1️⃣ Select piece to move (can be outside grid)
+    if (cellValue === currentPlayer && !selectedPiece) {
+      setSelectedPiece({ row: rowIndex, col: colIndex });
+      return;
+    }
+  
+    // 2️⃣ If a piece is selected, move it (must be inside active grid)
+    if (selectedPiece) {
+      const { row: fromRow, col: fromCol } = selectedPiece;
+  
+      if (!inActiveGrid || cellValue !== null) return; // Only move into empty active grid
+  
+      // Move piece
+      newBoard[fromRow][fromCol] = null;
+      newBoard[rowIndex][colIndex] = currentPlayer;
+  
+      setBoard(newBoard);
+      setSelectedPiece(null);
+      setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
+      return;
+    }
+  
+    // 3️⃣ If placing new piece (and under limit), must be in active grid
+    if (cellValue === null && inActiveGrid && currentPieceCount < 4) {
+      newBoard[rowIndex][colIndex] = currentPlayer;
+      setBoard(newBoard);
+      setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
+    }
+  }
+  
+  
+  
+
+
+  return (
+    <div className="w-full h-full flex items-center justify-center p-4">
+      <div className="grid grid-rows-5 gap-1">
+        {board.map((row, rowIndex) => (
+          <div key={rowIndex} className="flex gap-1">
+            {row.map((cell, colIndex) => (
+              <div
+                key={`${rowIndex}-${colIndex}`}
+                className={`
+                  w-16 h-16 border 
+                  ${rowIndex >= playableGridPosition.row && rowIndex < playableGridPosition.row + 3 &&
+                    colIndex >= playableGridPosition.col && colIndex < playableGridPosition.col + 3
+                    ? "border-green-500"
+                    : "border-gray-400"
+                  }
+                  flex items-center justify-center
+                `}
+              >
+                {
+                /* Future: show X/O here */
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  className="w-16 h-16 border border-gray-400 flex items-center justify-center cursor-pointer"
+                  onClick={() => handleCellClick(rowIndex, colIndex)}
+                >
+                  {board[rowIndex][colIndex]}
+                </div>
+
+                }
+              </div>
+            ))}
+          </div>
+        ))}
+        <div>
+          <button onClick={(()=> moveGrid("UP"))}>Up</button>
+          <button onClick={(()=> moveGrid("DOWN"))}>DOwn</button>
+          <button onClick={(()=> moveGrid("RIGHT"))}>right</button>
+          <button onClick={(()=> moveGrid("LEFT"))}>left</button>
+        </div>
+      </div>
+    </div>
+  );  
 }
