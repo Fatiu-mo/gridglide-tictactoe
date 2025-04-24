@@ -70,7 +70,7 @@ export default function Gameboard() {
   
       // Move piece
       newBoard[fromRow][fromCol] = null;
-      newBoard[rowIndex][colIndex] = currentPlayer;
+      newBoard[rowIndex][colIndex] = currentPlayer; 
   
       setBoard(newBoard);
       setSelectedPiece(null);
