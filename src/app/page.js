@@ -12,15 +12,19 @@ export default function Gameboard() {
   const [currentPlayer, setCurrentPlayer] = useState("X"); 
   const [selectedPiece, setSelectedPiece] = useState(null); // Will store { row, col }
   const [winner, setWinner] = useState(null)
-  const [lastAction, setLastAction] = useState("place"); // "place", "move", or "grid"
+  const [lastAction, setLastAction] = useState("place");
+  const [lastGridPosition, setLastGridPosition] = useState(null);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
+
 
  
 
   function moveGrid(direction) {
-    if (lastAction === "grid") {
-      alert("You must place or move a piece before moving the grid again.");
-      return;
-    }
+    if (winner) return;
+    // if (lastAction === "grid") {
+    //   alert("You must place or move a piece before moving the grid again.");
+    //   return;
+    // }
   
     const { row, col } = playableGridPosition;
     let newRow = row;
@@ -31,17 +35,35 @@ export default function Gameboard() {
     else if (direction === "LEFT" && col > 0) newCol--;
     else if (direction === "RIGHT" && col < 2) newCol++;
   
-    // Only update if something changed
+    const newPosition = { row: newRow, col: newCol };
+  
+    // Prevent toggling back
+    if (
+      lastGridPosition &&
+      newRow === lastGridPosition.row &&
+      newCol === lastGridPosition.col &&
+      lastAction === "grid"
+    ) {
+      alert("You cannot move back to the previous grid position immediately.");
+      return;
+    }
+
+  
     if (newRow !== row || newCol !== col) {
-      setPlayableGridPosition({ row: newRow, col: newCol });
-      setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
+      setPlayableGridPosition(newPosition);
+      setLastGridPosition({ row, col }); // store current as last
       setSelectedPiece(null); // clear any selected piece
-      setLastAction("grid"); // mark that a grid move was the last action
+      setLastAction("grid");
+      
+      // Check win immediately after grid move
+      if (checkWinInActiveGrid(board, currentPlayer, newPosition)) {
+        setWinner(currentPlayer);
+      } else {
+        setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
+      }
     }
   }
   
-  // Example usage
-  //  moveGrid("DOWN");
 
   function countPlayerPieces(board, player) {
     return board.flat().filter(cell => cell === player).length;
@@ -94,72 +116,76 @@ export default function Gameboard() {
   
 
   function handleCellClick(rowIndex, colIndex) {
-    if (winner) return; // Don't allow moves if game is over
-
+    if (winner) return;
+  
     const { row, col } = playableGridPosition;
     const inActiveGrid =
       rowIndex >= row && rowIndex < row + 3 &&
       colIndex >= col && colIndex < col + 3;
   
     const newBoard = board.map(row => [...row]);
-  
     const currentPieceCount = countPlayerPieces(board, currentPlayer);
-  
     const cellValue = board[rowIndex][colIndex];
   
-    // Select piece to move (can be outside grid)
-    if (cellValue === currentPlayer && !selectedPiece) {
-      setSelectedPiece({ row: rowIndex, col: colIndex });
+    // ✅ Handle selection/deselection
+    if (cellValue === currentPlayer) {
+      if (selectedPiece &&
+          selectedPiece.row === rowIndex &&
+          selectedPiece.col === colIndex) {
+        setSelectedPiece(null); // deselect
+      } else {
+        setSelectedPiece({ row: rowIndex, col: colIndex }); // select
+      }
       return;
     }
   
-    // If a piece is selected, move it (must be inside active grid)
+    // ✅ Move selected piece (must be into empty cell in active grid)
     if (selectedPiece) {
       const { row: fromRow, col: fromCol } = selectedPiece;
   
-      if (!inActiveGrid || cellValue !== null) return; // Only move into empty active grid
+      if (!inActiveGrid || cellValue !== null) return;
   
-      // Move piece
       newBoard[fromRow][fromCol] = null;
       newBoard[rowIndex][colIndex] = currentPlayer;
-
       setBoard(newBoard);
-
-      setLastAction("move"); // If a piece was moved
-
+      setSelectedPiece(null);
+      setLastAction("move");
+  
       if (checkWinInActiveGrid(newBoard, currentPlayer, playableGridPosition)) {
-        setWinner(currentPlayer)
+        setWinner(currentPlayer);
         return;
       }
-      
-      setSelectedPiece(null);
+  
       setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
       return;
     }
-   
-    // If placing new piece (and under limit), must be in active grid
+  
+    // ✅ Place new piece if under limit
     if (cellValue === null && inActiveGrid && currentPieceCount < 4) {
       newBoard[rowIndex][colIndex] = currentPlayer;
       setBoard(newBoard);
-      setLastAction("place"); // If a piece was placed
-
+      setLastAction("place");
+  
       if (checkWinInActiveGrid(newBoard, currentPlayer, playableGridPosition)) {
-        setWinner(currentPlayer)
+        setWinner(currentPlayer);
         return;
       }
-      
+  
       setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
     }
   }
   
+  
   function resetGame() {
-    const emptyBoard = Array(5).fill(null).map(() => Array(5).fill(null));
-    setBoard(emptyBoard);
+    setBoard(Array(5).fill(null).map(() => Array(5).fill(null)));
+    setPlayableGridPosition({ row: 1, col: 1 });
     setCurrentPlayer("X");
+    setSelectedPiece(null);
     setWinner(null);
-    setPlayableGridPosition({ row: 0, col: 0 });
-    setSelectedPiece(null); // if you're using piece selection
+    setLastAction(null);
+    setLastGridPosition(null);
   }
+  
   
   
   
@@ -167,6 +193,14 @@ export default function Gameboard() {
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center p-4 space-y-4">
+      <h1 className="text-6xl mb-16 mt-20">GridTactix</h1>
+      <button
+        onClick={() => setShowHowToPlay(true)}
+        className="mb-4 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+      >
+        How to Play
+      </button>
+
       
       {/* Game Board */}
       <div className="grid grid-rows-5 gap-1">
@@ -231,6 +265,33 @@ export default function Gameboard() {
           </button>
         </div>
       )}
+
+      {showHowToPlay && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-xl w-full p-6 relative">
+            <h2 className="text-2xl font-bold mb-4 text-center text-black">How to Play: GridTactix</h2>
+            <ol className="list-decimal list-inside text-gray-700 space-y-2 text-sm leading-relaxed max-h-[60vh] overflow-y-auto">
+              <li>The game board is 5x5, but only a 3x3 section is active at a time.</li>
+              <li>Each player (X or O) can place a maximum of 4 pieces on the board.</li>
+              <li>You can place a piece in an empty cell inside the active 3x3 grid if you haven't reached 4 pieces yet.</li>
+              <li>If you've placed 4 pieces, you must move one of your existing pieces instead of placing a new one.</li>
+              <li>You can only move your piece to an empty cell inside the active grid.</li>
+              <li>You can move the active 3x3 grid using the arrow buttons (Up, Down, Left, Right).</li>
+              <li>You're not allowed to move the grid twice in a row. You must place or move a piece before moving it again.</li>
+              <li>Each grid movement counts as a turn and passes the move to the other player.</li>
+              <li>The first player to form a line of 3 of their pieces (row, column, or diagonal) inside the active grid wins!</li>
+            </ol>
+            <button
+              onClick={() => setShowHowToPlay(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-black text-lg"
+              title="Close"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );    
 }
