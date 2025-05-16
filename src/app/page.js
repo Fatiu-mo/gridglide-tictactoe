@@ -12,9 +12,16 @@ export default function Gameboard() {
   const [currentPlayer, setCurrentPlayer] = useState("X"); 
   const [selectedPiece, setSelectedPiece] = useState(null); // Will store { row, col }
   const [winner, setWinner] = useState(null)
+  const [lastAction, setLastAction] = useState("place"); // "place", "move", or "grid"
+
  
 
   function moveGrid(direction) {
+    if (lastAction === "grid") {
+      alert("You must place or move a piece before moving the grid again.");
+      return;
+    }
+  
     const { row, col } = playableGridPosition;
     let newRow = row;
     let newCol = col;
@@ -29,8 +36,10 @@ export default function Gameboard() {
       setPlayableGridPosition({ row: newRow, col: newCol });
       setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
       setSelectedPiece(null); // clear any selected piece
+      setLastAction("grid"); // mark that a grid move was the last action
     }
   }
+  
   // Example usage
   //  moveGrid("DOWN");
 
@@ -112,9 +121,12 @@ export default function Gameboard() {
   
       // Move piece
       newBoard[fromRow][fromCol] = null;
-      newBoard[rowIndex][colIndex] = currentPlayer; 
-  
+      newBoard[rowIndex][colIndex] = currentPlayer;
+
       setBoard(newBoard);
+
+      setLastAction("move"); // If a piece was moved
+
       if (checkWinInActiveGrid(newBoard, currentPlayer, playableGridPosition)) {
         setWinner(currentPlayer)
         return;
@@ -129,6 +141,8 @@ export default function Gameboard() {
     if (cellValue === null && inActiveGrid && currentPieceCount < 4) {
       newBoard[rowIndex][colIndex] = currentPlayer;
       setBoard(newBoard);
+      setLastAction("place"); // If a piece was placed
+
       if (checkWinInActiveGrid(newBoard, currentPlayer, playableGridPosition)) {
         setWinner(currentPlayer)
         return;
@@ -189,11 +203,21 @@ export default function Gameboard() {
   
       {/* Grid Movement Controls */}
       <div className="flex gap-2 mt-4">
-        <button onClick={() => moveGrid("UP")} className="px-3 py-1 bg-gray-200 rounded">Up</button>
-        <button onClick={() => moveGrid("DOWN")} className="px-3 py-1 bg-gray-200 rounded">Down</button>
-        <button onClick={() => moveGrid("LEFT")} className="px-3 py-1 bg-gray-200 rounded">Left</button>
-        <button onClick={() => moveGrid("RIGHT")} className="px-3 py-1 bg-gray-200 rounded">Right</button>
+        <button onClick={() => moveGrid("UP")} className="px-3 py-1 text-black bg-gray-200 rounded">Up</button>
+        <button onClick={() => moveGrid("DOWN")} className="px-3 py-1 text-black bg-gray-200 rounded">Down</button>
+        <button onClick={() => moveGrid("LEFT")} className="px-3 py-1 text-black bg-gray-200 rounded">Left</button>
+        <button onClick={() => moveGrid("RIGHT")} className="px-3 py-1 text-black bg-gray-200 rounded">Right</button>
       </div>
+
+      {/* Turn Indicator */}
+      {!winner && (
+        <div className="text-center mb-4 text-lg font-semibold">
+          Turn:{" "}
+          <span className={`text-${currentPlayer === "X" ? "blue" : "red"}-500`}>
+            Player {currentPlayer}
+          </span>
+        </div>
+      )}
   
       {/* Winner Message + Reset */}
       {winner && (
