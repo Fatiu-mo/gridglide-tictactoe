@@ -273,11 +273,11 @@ export default function Gameboard() {
             <ol className="list-decimal list-inside text-gray-700 space-y-2 text-sm leading-relaxed max-h-[60vh] overflow-y-auto">
               <li>The game board is 5x5, but only a 3x3 section is active at a time.</li>
               <li>Each player (X or O) can place a maximum of 4 pieces on the board.</li>
-              <li>You can place a piece in an empty cell inside the active 3x3 grid if you haven't reached 4 pieces yet.</li>
-              <li>If you've placed 4 pieces, you must move one of your existing pieces instead of placing a new one.</li>
+              <li>You can place a piece in an empty cell inside the active 3x3 grid if you have not reached 4 pieces yet.</li>
+              <li>If you have placed 4 pieces, you must move one of your existing pieces instead of placing a new one.</li>
               <li>You can only move your piece to an empty cell inside the active grid.</li>
               <li>You can move the active 3x3 grid using the arrow buttons (Up, Down, Left, Right).</li>
-              <li>You're not allowed to move the grid twice in a row. You must place or move a piece before moving it again.</li>
+              <li>You are not allowed to move the grid twice in a row. You must place or move a piece before moving it again.</li>
               <li>Each grid movement counts as a turn and passes the move to the other player.</li>
               <li>The first player to form a line of 3 of their pieces (row, column, or diagonal) inside the active grid wins!</li>
             </ol>
