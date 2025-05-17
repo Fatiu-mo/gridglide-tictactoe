@@ -193,7 +193,7 @@ export default function Gameboard() {
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center p-4 space-y-4">
-      <h1 className="text-6xl mb-16 mt-20">GridTactix</h1>
+      <h1 className="text-6xl mb-16 mt-10">GridTactix</h1>
       <button
         onClick={() => setShowHowToPlay(true)}
         className="mb-4 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
